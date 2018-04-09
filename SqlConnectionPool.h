@@ -47,7 +47,7 @@ class SqlConnectionHandler : public QObject
 
 public:
     SqlConnectionHandler(const QString &type, const QString &databaseName = "",
-        const QString &userName = "root", const QString &passowrd = "",
+        const QString &userName = "root", const QString &password = "",
         const QString &host = "127.0.0.1",  int port = 3306);
     ~SqlConnectionHandler();
 
@@ -101,7 +101,7 @@ private:
     QString m_type;
     QString m_databaseName;
     QString m_userName;
-    QString m_passowrd;
+    QString m_password;
     QString m_host;
     int m_port;
 
@@ -130,7 +130,7 @@ signals:
 
 public:
     SqlConnection(const QString &type, const QString &databaseName = "",
-        const QString &userName = "root", const QString &passowrd = "",
+        const QString &userName = "root", const QString &password = "",
         const QString &host = "127.0.0.1",  int port = 3306);
     ~SqlConnection();
 
@@ -150,14 +150,14 @@ class SqlConnectionPool
 {
 public:
     SqlConnectionPool(unsigned int numConnection, const QString &type, const QString &databaseName = "",
-        const QString &userName = "root", const QString &passowrd = "",
+        const QString &userName = "root", const QString &password = "",
         const QString &host = "127.0.0.1",  int port = 3306, unsigned autoOpenInterval = 10000);
     ~SqlConnectionPool();
 
     const QString& type();
     const QString& databaseName();
     const QString& userName();
-    const QString& passowrd();
+    const QString& password();
     const QString& host();
     int port();
 
@@ -169,7 +169,7 @@ private:
     QString m_type;
     QString m_databaseName;
     QString m_userName;
-    QString m_passowrd;
+    QString m_password;
     QString m_host;
     int m_port;
 
