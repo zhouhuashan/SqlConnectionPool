@@ -14,13 +14,13 @@ const char* SqlConnection::TYPE_QTDS = "QTDS";
 const char* SqlConnection::TYPE_QIBASE = "QIBASE";
 
 SqlConnectionHandler::SqlConnectionHandler(const QString &type, const QString &databaseName,
-    const QString &userName, const QString &passowrd, const QString &host, int port)
+    const QString &userName, const QString &password, const QString &host, int port)
     :   m_handler(NULL),
         m_autoOpenInterval(10000),
         m_type(type),
         m_databaseName(databaseName),
         m_userName(userName),
-        m_passowrd(passowrd),
+        m_password(password),
         m_host(host),
         m_port(port),
         m_testSql("SELECT 1;")
@@ -128,7 +128,7 @@ void SqlConnectionHandler::initHandler()
 
     m_handler->setDatabaseName(m_databaseName);
     m_handler->setUserName(m_userName);
-    m_handler->setPassword(m_passowrd);
+    m_handler->setPassword(m_password);
     m_handler->setHostName(m_host);
     m_handler->setPort(m_port);
 }
@@ -160,18 +160,21 @@ void SqlConnectionHandler::prepareArgs(QSqlQuery &query, const QVector<QVariant>
     if (args)
     {
         int i = 0;
-        for (QVector<QVariant>::const_iterator it = args->begin(); it != args->end(); ++it, ++i)
-            query.bindValue(i, it);
+        for (auto arg : *args)
+        {
+            query.bindValue(i, arg);
+            ++i;
+        }
     }
 }
 
 SqlConnection::SqlConnection(const QString &type, const QString &databaseName, const QString &userName,
-    const QString &passowrd, const QString &host, int port)
+    const QString &password, const QString &host, int port)
 {
     bool ready = false;
-    m_thread = std::thread([this, &type, &databaseName, &userName, &passowrd, &host, &port, &ready]()
+    m_thread = std::thread([this, &type, &databaseName, &userName, &password, &host, &port, &ready]()
     {
-        m_handler.reset(new SqlConnectionHandler(type, databaseName, userName, passowrd, host, port));
+        m_handler.reset(new SqlConnectionHandler(type, databaseName, userName, password, host, port));
         QObject::connect(this, SIGNAL(queryOnceWithArgsList(QString,const QVector<QVariant>*,SqlResultPrivate&,bool&)),
             m_handler.get(), SLOT(doQeuryWithArgsList(QString,const QVector<QVariant>*,SqlResultPrivate&,bool&)),
             Qt::BlockingQueuedConnection);
@@ -242,12 +245,12 @@ void SqlConnection::setAutoOpenInterval(unsigned ms)
 
 SqlConnectionPool::SqlConnectionPool(unsigned int numConnection,
     const QString & type, const QString &databaseName, const QString &userName,
-    const QString &passowrd, const QString &host, int port,
+    const QString &password, const QString &host, int port,
     unsigned autoOpenInterval)
     :   m_type(type),
         m_databaseName(databaseName),
         m_userName(userName),
-        m_passowrd(passowrd),
+        m_password(password),
         m_host(host),
         m_port(port),
         m_counter(0)
@@ -255,7 +258,7 @@ SqlConnectionPool::SqlConnectionPool(unsigned int numConnection,
     Q_ASSERT_X(numConnection, "SqlConnectionPool", "numConnection == 0");
     for (unsigned int i = 0; i < numConnection; ++i)
     {
-        SqlConnection *conn = new SqlConnection(type, databaseName, userName, passowrd, host, port);
+        SqlConnection *conn = new SqlConnection(type, databaseName, userName, password, host, port);
         conn->setAutoOpenInterval(autoOpenInterval);
         m_connections.push_back(std::shared_ptr<SqlConnection>(conn));
     }
@@ -281,9 +284,9 @@ const QString &SqlConnectionPool::userName()
     return m_userName;
 }
 
-const QString &SqlConnectionPool::passowrd()
+const QString &SqlConnectionPool::password()
 {
-    return m_passowrd;
+    return m_password;
 }
 
 const QString &SqlConnectionPool::host()
